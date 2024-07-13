@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
-  var favourites = <WordPair>[];
+  var favorites = <WordPair>[];
 
   void getNext() {
     current = WordPair.random();
@@ -36,11 +36,19 @@ class MyAppState extends ChangeNotifier {
   }
 
   void toggleFavorite() {
-    if (favourites.contains(current)) {
-      favourites.remove(current);
+    if (favorites.contains(current)) {
+      favorites.remove(current);
     } else {
-      favourites.add(current);
+      favorites.add(current);
     }
+    notifyListeners();
+  }
+
+  void removeFromFavorites(word) {
+    if (favorites.contains(word)) {
+      favorites.remove(word);
+    }
+    // else throw smth;
     notifyListeners();
   }
 }
@@ -113,7 +121,7 @@ class GeneratorPage extends StatelessWidget {
     var pair = appState.current;
 
     IconData icon;
-    if (appState.favourites.contains(pair)) {
+    if (appState.favorites.contains(pair)) {
       icon = Icons.favorite;
     } else {
       icon = Icons.favorite_outline;
@@ -188,7 +196,7 @@ class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    var favoritesList = appState.favourites;
+    var favoritesList = appState.favorites;
     final theme = Theme.of(context);
     final style = theme.textTheme.bodyLarge!.copyWith(
       color: theme.colorScheme.onSurface,
@@ -206,9 +214,21 @@ class FavoritesPage extends StatelessWidget {
 
     return ListView(
       children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text(
+            "You have ${favoritesList.length} favorites:",
+            style: style,
+          ),
+        ),
         for (var word in favoritesList)
           ListTile(
-            leading: Icon(Icons.favorite),
+            leading: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                appState.removeFromFavorites(word);
+              },
+            ),
             title: Text(
               word.asLowerCase,
               style: style,
